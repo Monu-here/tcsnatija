@@ -22,74 +22,36 @@ class Tcs extends Data {
       const html = await this.getData();
 
       let dataNotice = [];
-      let dataAds = [];
-      let dataResult = [];
+      
       const $ = cheerio.load(html);
-      const elements = $("#tab1 table tbody tr");
-      for (let index = 0; index < elements.length; index++) {
-        const el = elements[index];
-        const ele = $(el).find("a");
-        const title = ele.text().trim();
-        const localURL = "https://tsc.gov.np" + ele.attr("href");
-
-        const url = await this.fetchInnerPage(localURL);
-
-        if (url) {
-          dataNotice.push({
-            title,
-            url,
-            image: "",
-            category: "tsc",
-            topic: "tsc_notice",
-          });
+      const selectors=[[1,'tcs_notice'],[2,'tsc_ads'],[3,'tsc_result']];
+      for (let i = 0; i < selectors.length; i++) {
+        dataNotice = [];
+        const selector = selectors[i];
+        const elements = $(`#tab${selector[0]} table tbody tr`);
+        for (let index = 0; index < elements.length; index++) {
+          const el = elements[index];
+          const ele = $(el).find("a");
+          const title = ele.text().trim();
+          const localURL = "https://tsc.gov.np" + ele.attr("href");
+  
+          const url = await this.fetchInnerPage(localURL);
+  
+          if (url) {
+            dataNotice.push({
+              title,
+              url,
+              image: "",
+              category: "tsc",
+              topic: selector[1],
+            });
+          }
         }
-      }
-
-      this.save(dataNotice, "tcs_notice");
-
-      // const $ = cheerio.load(html);
-      const ads = $("#tab2  table tbody tr");
-      for (let index = 0; index < ads.length; index++) {
-        const el = ads[index];
-        const ele = $(el).find("a");
-        const title = ele.text().trim();
-        const localURL = "https://tsc.gov.np" + ele.attr("href");
-
-        const url = await this.fetchInnerPage(localURL);
-
-        if (url) {
-          dataAds.push({
-            title,
-            url,
-            image: "",
-            category: "tsc",
-            topic: "tsc_Ads",
-          });
-        }
-      }
-
-      this.save(dataAds, "tcs_Ads");
-
-      const result = $('#tab3 table tbody tr');
-      for (let index = 0; index < result.length; index++) {
-        const el = result[index];
-        const ele = $(el).find("a");
-        const title = ele.text().trim();
-        const localURL = "https://tsc.gov.np" + ele.attr("href");
-
-        const url = await this.fetchInnerPage(localURL);
-        if (url) {
-          dataResult.push({
-            title,
-            url,
-            image: "",
-            category: "tsc",
-            topic: "tsc_Result",
-          })
-        }
+  
+        this.save(dataNotice, selector[1]);
         
       }
-      this.save(dataResult,'tcs_Result');
+
     } catch (err) {
       console.error(err);
     }
